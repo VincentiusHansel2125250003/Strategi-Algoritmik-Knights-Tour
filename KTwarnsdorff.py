@@ -41,7 +41,7 @@ def solve_knight_tour(start_x, start_y, update_text_callback):
                 degree = get_degree(new_x, new_y, board)
                 moves.append((degree, new_x, new_y))
         
-        # Sort the moves based on the degree heuristic
+        # Urutkan langkah-langkah berdasarkan heuristik derajat
         moves.sort()
 
         for degree, new_x, new_y in moves:
@@ -62,6 +62,7 @@ def solve_knight_tour(start_x, start_y, update_text_callback):
         return None
 
 class KnightsTourApp:
+    # Menginisialisasi atribut dan memanggil metode untuk membuat widget
     def __init__(self, root):
         self.root = root
         self.root.title("Knight's Tour using Warnsdorff's Rule")
@@ -71,6 +72,7 @@ class KnightsTourApp:
         self.animation_id = None
         self.create_widgets()
         
+    # Membuat semua widget (kanvas, tombol, label, skala, dan area teks)
     def create_widgets(self):
         self.canvas = tk.Canvas(self.root, width=400, height=400)
         self.canvas.pack()
@@ -79,10 +81,10 @@ class KnightsTourApp:
         control_frame.pack()
         
         self.start_button = tk.Button(control_frame, text="Start", command=self.start_tour)
-        self.start_button.grid(row=0, column=0, padx=(0, 10))  # Add padding to the right of the Start button
+        self.start_button.grid(row=0, column=0, padx=(0, 10))  # Menambahkan padding di kanan button Start
         
         self.speed_label = tk.Label(control_frame, text="Speed (ms):")
-        self.speed_label.grid(row=0, column=1, padx=(10, 0))  # Add padding to the left of the Speed label
+        self.speed_label.grid(row=0, column=1, padx=(10, 0))  # Menambahkan padding di kiri label speed
         
         self.speed_var = tk.IntVar(value=self.speed)
         self.speed_scale = tk.Scale(control_frame, from_=100, to=2000, variable=self.speed_var, orient=tk.HORIZONTAL, command=self.update_speed)
@@ -106,6 +108,7 @@ class KnightsTourApp:
         self.start_x, self.start_y = None, None
         self.draw_board()
     
+    # Menggambar papan catur di kanvas
     def draw_board(self):
         self.canvas.delete("all")
         self.rectangles = [[None for _ in range(N)] for _ in range(N)]
@@ -116,6 +119,7 @@ class KnightsTourApp:
                 x2, y2 = x1 + 50, y1 + 50
                 self.rectangles[i][j] = self.canvas.create_rectangle(x1, y1, x2, y2, fill=color)
     
+    # Mengambil posisi awal ketika mengklik pada kanvas
     def get_start_position(self, event):
         if self.animation_id is not None:
             self.root.after_cancel(self.animation_id)
@@ -123,12 +127,13 @@ class KnightsTourApp:
         self.solution_path = None
         self.start_x, self.start_y = None, None
         self.draw_board()
-        self.text_output.delete("1.0", tk.END)  # Clear the text output
+        self.text_output.delete("1.0", tk.END)  # Membersihkan output text
 
         x, y = event.x // 50, event.y // 50
         self.start_x, self.start_y = y, x
         self.highlight_start_position()
 
+    # Memberi tanda pada petak papan catur yang dipilih sebagai posisi awal dengan batas merah
     def highlight_start_position(self):
         self.draw_board()
         if self.start_x is not None and self.start_y is not None:
@@ -136,6 +141,7 @@ class KnightsTourApp:
             x2, y2 = x1 + 50, y1 + 50
             self.canvas.create_rectangle(x1, y1, x2, y2, outline="red", width=3)
 
+    # Memulai pencarian lintasan kuda dari posisi awal yang dipilih
     def start_tour(self):
         if self.start_x is None or self.start_y is None:
             messagebox.showerror("Error", "Please select a start position.")
@@ -159,6 +165,7 @@ class KnightsTourApp:
         solver_thread = threading.Thread(target=run_solver)
         solver_thread.start()
     
+    # Memproses solusi yang ditemukan. Jika solusi ditemukan, mulai animasi lintasan, jika tidak, tampilkan pesan kesalahan
     def process_solution(self, solution_path):
         if solution_path:
             self.solution_path = solution_path
@@ -167,28 +174,34 @@ class KnightsTourApp:
         else:
             messagebox.showerror("Error", "No solution found.")
 
+    # Menganimasikan lintasan solusi dengan menyoroti petak satu per satu sesuai urutan langkah kuda
     def animate_solution(self, step):
         if step < len(self.solution_path):
             x, y = self.solution_path[step]
             self.highlight_square(x, y, step)
             self.animation_id = self.root.after(self.speed, self.animate_solution, step + 1)
 
+    # Menyoroti petak yang dilalui kuda selama animasi. Petak awal diwarnai hijau, dan petak-petak lainnya diwarnai kuning dengan nomor langkah.
     def highlight_square(self, x, y, step):
         x1, y1 = y * 50, x * 50
         x2, y2 = x1 + 50, y1 + 50
         self.canvas.create_rectangle(x1, y1, x2, y2, fill="green" if step == 0 else "yellow", outline="black")
         self.canvas.create_text(x1 + 25, y1 + 25, text=str(step + 1), fill="black")
 
+    # Memperbarui kecepatan animasi berdasarkan nilai yang dipilih pada skala kecepatan
     def update_speed(self, value):
         self.speed = int(value)
     
+    # Menambahkan pesan ke area teks secara asynchronous
     def update_text_output(self, message):
         self.root.after(0, self.append_text_output, message)
 
+    # Menambahkan pesan ke area teks dan menggulir ke bawah agar pesan terbaru terlihat
     def append_text_output(self, message):
         self.text_output.insert(tk.END, message + "\n")
         self.text_output.see(tk.END)
     
+    # Memperbarui label waktu eksekusi dengan waktu yang diambil oleh algoritma untuk menemukan solusi
     def update_execution_time(self, execution_time):
         self.time_label.config(text=f"Execution Time: {execution_time} ms")
 
